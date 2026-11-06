@@ -6,13 +6,13 @@ alwaysApply: false
 
 # Tests
 
-Follow `@src/test/java/com/practicetestautomation/tests/login/LoginTests.java` and the uncommented methods in `@src/test/java/com/practicetestautomation/tests/exceptions/ExceptionsTests.java`. Browser startup and shutdown are `@src/test/java/com/practicetestautomation/tests/BaseTest.java`.
+Follow `@src/test/java/com/practicetestautomation/tests/login/LoginTests.java` and `@src/test/java/com/practicetestautomation/tests/exceptions/ExceptionsTests.java`. Browser startup and shutdown are `@src/test/java/com/practicetestautomation/tests/BaseTest.java`.
 
 - Put a new area in `src/test/java/com/practicetestautomation/tests/<area>/`. Add login methods to `LoginTests` and exceptions methods to `ExceptionsTests`.
 - Extend `BaseTest`. Use its `driver` and `logger`. Do not create a driver, quit it, or set browser options.
 - One public `@Test` method per scenario. CamelCase name ending in `Test`.
 - Open with `new <Page>(driver)` and `visit()`, then call that object's methods. Assert with `org.testng.Assert`: `assertEquals(actual, expected)` for strings, `assertTrue(condition, "what failed")` for booleans.
-- Do not use `By`, waits, or commented-out Selenium in a test. The comments in `ExceptionsTests` are not a template.
+- Do not use `By`, waits, or commented-out Selenium in a test.
 - Each new method asserts something different. Do not clone `noSuchElementExceptionsTest` and `timeOutExceptionTest`.
 - Positive login groups: `positive`, `regression`, `smoke`. Negative login groups: `negative`, `regression`, with `@Parameters({"username","password","expectedErrorMessage"})` filled by the suite. Exceptions methods stay ungrouped unless a suite filters on a group.
 - `logger.info` is a single line about the check. Do not create another `Logger`.
