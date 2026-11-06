@@ -21,6 +21,7 @@ Maven coordinates: `org.example:SeleniumForBeginners:1.0-SNAPSHOT`. The GitHub r
 ## Layout
 
 ```
+.cursor/mcp.json          # Chrome DevTools MCP server for Cursor
 pom.xml
 src/main/java/com/practicetestautomation/pageobjects/
   BasePage.java
@@ -59,6 +60,14 @@ Surefire runs one suite file: `src/test/resources/TestSuites/${suiteXmlFile}`. T
 | `SmokeTestSuite.xml` | `LoginTests` methods in the `smoke` group. No `browser` parameter, so Chrome. |
 | `ExceptionsSuite.xml` | All of `ExceptionsTests` on `chrome`. |
 | `DebugSuite.xml` | Each exceptions test method in its own `<test>`. No `browser` parameter, so Chrome. |
+
+## Inspect pages
+
+`.cursor/mcp.json` registers the `chrome-devtools` server as `npx -y chrome-devtools-mcp@latest`. Cursor launches that process over stdio. The server starts Chrome only when a tool needs a browser, using the installed stable Chrome in headed mode. This is separate from the Selenium suite: `BaseTest` still creates its own `ChromeDriver`, `EdgeDriver`, or `FirefoxDriver`.
+
+Requirements beyond the Maven test run: Node.js LTS, npm, current stable Chrome, and a display. The npm package tag is `@latest`, so the tool list can change when the server updates.
+
+Page-scoped tools require `pageId`. Open a URL with `new_page` (argument `url`) or `navigate_page`, then read ids from `list_pages`. A fresh browser already has an `about:blank` tab, so the page from `new_page` is not id 1. Inspect with `take_snapshot` (accessibility tree; prefer this over a screenshot), `take_screenshot`, `list_console_messages`, and `list_network_requests`.
 
 ## Conventions
 
