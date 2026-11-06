@@ -1,39 +1,27 @@
 ---
-description: Use when creating or editing TestNG tests or suite XML. Covers BaseTest, page-object calls, assertions, groups, parameters, and which suite must include the new test.
+description: Use when creating or editing TestNG test classes or suite XML.
 globs: src/test/java/**/*.java,src/test/resources/TestSuites/**/*.xml
 alwaysApply: false
 ---
 
-# New TestNG tests
+# Tests
 
-Read `src/test/java/com/practicetestautomation/tests/login/LoginTests.java` and the uncommented methods in `src/test/java/com/practicetestautomation/tests/exceptions/ExceptionsTests.java` before adding a test. `BaseTest` already starts and closes the browser.
+Follow `@src/test/java/com/practicetestautomation/tests/login/LoginTests.java` and the uncommented methods in `@src/test/java/com/practicetestautomation/tests/exceptions/ExceptionsTests.java`. Browser startup and shutdown are `@src/test/java/com/practicetestautomation/tests/BaseTest.java`.
 
-## Class
+- Put a new area in `src/test/java/com/practicetestautomation/tests/<area>/`. Add login methods to `LoginTests` and exceptions methods to `ExceptionsTests`.
+- Extend `BaseTest`. Use its `driver` and `logger`. Do not create a driver, quit it, or set browser options.
+- One public `@Test` method per scenario. CamelCase name ending in `Test`.
+- Open with `new <Page>(driver)` and `visit()`, then call that object's methods. Assert with `org.testng.Assert`: `assertEquals(actual, expected)` for strings, `assertTrue(condition, "what failed")` for booleans.
+- Do not use `By`, waits, or commented-out Selenium in a test. The comments in `ExceptionsTests` are not a template.
+- Each new method asserts something different. Do not clone `noSuchElementExceptionsTest` and `timeOutExceptionTest`.
+- Positive login groups: `positive`, `regression`, `smoke`. Negative login groups: `negative`, `regression`, with `@Parameters({"username","password","expectedErrorMessage"})` filled by the suite. Exceptions methods stay ungrouped unless a suite filters on a group.
+- `logger.info` is a single line about the check. Do not create another `Logger`.
 
-- Put the class in `src/test/java/com/practicetestautomation/tests/<area>/`. Login scenarios stay in `com.practicetestautomation.tests.login.LoginTests`. Exceptions scenarios stay in `com.practicetestautomation.tests.exceptions.ExceptionsTests`. A new practice page gets its own class in a new subpackage.
-- Extend `BaseTest`. Use the inherited `driver` and `logger`. Do not construct a `WebDriver`, call `driver.quit()`, or set browser options. `BaseTest.setup` reads the suite parameter `browser` (`chrome`, `edge`, or `firefox`). Any other value, including `safari`, starts Chrome.
-- One public `@Test` method per scenario. Name it in camelCase and end it with `Test`.
-- Import `org.testng.Assert` and `org.testng.annotations.*`. Do not import `By`, `WebDriverWait`, or `ExpectedConditions`.
+## Suites
 
-## Method body
+`mvn test` runs one file under `src/test/resources/TestSuites/`. The default is `FullRegressionSuite.xml`. Match the `<test>`, `<parameter>`, and `<include>` shape of the suite you edit.
 
-- Construct the page with the inherited driver, then open it: `new LoginPage(driver)` followed by `visit()`.
-- Call page-object methods only. Inputs and expected strings stay in the test or in suite parameters. Locators and waits stay on the page object.
-- Assert in the test with `org.testng.Assert`. Use `assertEquals(actual, expected)` for text and URLs. Use `assertTrue(condition, "what failed")` for display checks, as `ExceptionsTests` does.
-- Do not leave commented-out Selenium. The comment blocks in `ExceptionsTests` are the old raw-driver steps and are not a template.
-- Each new test asserts a different outcome. `noSuchElementExceptionsTest` and `timeOutExceptionTest` currently perform the same steps; do not add another copy.
-- A positive login test uses groups `{"positive","regression","smoke"}` and the same `executeLogin` credentials already used in `loginFunctionalityTest`.
-- A negative login test uses `@Parameters({"username","password","expectedErrorMessage"})` and groups `{"negative","regression"}`. Do not hardcode those three values in the method.
-- `ExceptionsTests` methods have no groups. Do not add groups there unless a suite filters on them.
-- Use `logger.info` only for a short line about what the test is verifying, as `LoginTests` does. Do not create a new `Logger`.
-
-## Suite XML
-
-`mvn test` runs `src/test/resources/TestSuites/${suiteXmlFile}` only. The default file is `FullRegressionSuite.xml`. A new method does not run until a suite includes it.
-
-- Suites use `<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">` and `verbose="1"`.
-- If the suite lists `<methods><include name="..."/>`, add an `<include>` for the new method. `FullRegressionSuite.xml` does this for `loginFunctionalityTest` and `negativeLoginTest`. `DebugSuite.xml` does this for each exceptions method.
-- If the suite lists the class and no `<methods>` filter, every `@Test` on that class runs. `ExceptionsSuite.xml` and the exceptions `<test>` in `FullRegressionSuite.xml` are like that.
-- `SmokeTestSuite.xml` runs `LoginTests` methods in the `smoke` group and does not set `browser`, so Chrome is used. A new smoke test needs group `smoke` on a class that suite includes.
-- Set `browser` to `chrome`, `firefox`, or `edge`. Do not add another `safari` value.
-- A `<test>` that includes `negativeLoginTest` must supply `username`, `password`, and `expectedErrorMessage`. Copy the `<parameter>` shape from `FullRegressionSuite.xml`.
+- A method runs only when a suite includes it. No `<methods>` block means every `@Test` on that class runs. An `<include name="..."/>` list runs only those methods.
+- `SmokeTestSuite.xml` runs the `smoke` group and sets no `browser`.
+- Allowed `browser` values are `chrome`, `firefox`, and `edge`.
+- A `<test>` that includes `negativeLoginTest` must pass `username`, `password`, and `expectedErrorMessage`.

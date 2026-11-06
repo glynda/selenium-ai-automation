@@ -1,46 +1,35 @@
 ---
-description: Use when creating or editing Selenium page objects. Covers BasePage, locators, visit(), waits, and return values. Tests assert; page objects do not.
+description: Use when creating or editing Selenium page objects in the pageobjects package.
 globs: src/main/java/com/practicetestautomation/pageobjects/**/*.java
 alwaysApply: false
 ---
 
-# New page objects
+# Page objects
 
-Read `LoginPage`, `SuccessfulLoginPage`, and `BasePage` before adding a page. `ExceptionsPage` is the example for elements that appear after a click. Do not copy a method whose name and locator disagree: `isInstructionsNoLongerDisplayedAfterWait` waits on the edit button, not `#instructions`.
+Follow `@src/main/java/com/practicetestautomation/pageobjects/LoginPage.java`, `@src/main/java/com/practicetestautomation/pageobjects/SuccessfulLoginPage.java`, and `@src/main/java/com/practicetestautomation/pageobjects/BasePage.java`. For elements that appear after a click, follow `@src/main/java/com/practicetestautomation/pageobjects/ExceptionsPage.java`.
 
-## Class
+- Package `com.practicetestautomation.pageobjects`. `public class <Name>Page extends BasePage`.
+- Constructor only calls `super(driver)`. Use `driver` and `wait` from `BasePage`. Do not construct a `WebDriver` or `WebDriverWait`.
+- Import `By`, `WebDriver`, and `WebElement` only when used. No `PageFactory` or `@FindBy`.
+- `private By` fields before the constructor, suffix `Locator`. Prefer `By.id`. Use `By.linkText` for a link. Scope an xpath to one row when an id repeats. Do not build a `By` inside a method.
 
-- Package `com.practicetestautomation.pageobjects`, file under `src/main/java/com/practicetestautomation/pageobjects/`.
-- `public class <Name>Page extends BasePage`.
-- Constructor: `public <Name>Page(WebDriver driver) { super(driver); }`.
-- Import `By`, `WebDriver`, and `WebElement` only when the file uses them. Do not import TestNG. Do not use `PageFactory` or `@FindBy`.
-- Do not create a `WebDriver` or a `WebDriverWait`. `BasePage` already stores `driver` and a 10-second `wait`.
+## Actions
 
-## Locators
-
-- Declare `private By` fields before the constructor, as `LoginPage` and `SuccessfulLoginPage` do, with a `Locator` suffix: `usernameInputLocator`, `addButtonLocator`.
-- Prefer `By.id` when the element has an id. Use `By.linkText` for a link such as `Log out`. Scope an xpath to one row when the same id is repeated, as `row2InputLocator` does.
-- Keep the locator on the field. Do not call `By.id` or `By.xpath` inside a method.
-
-## Methods
-
-- A page opened by its own URL gets `public void visit()` that calls `super.visit` with the full `https://practicetestautomation.com/...` URL. A page reached only from another page, such as `SuccessfulLoginPage`, has no `visit()`.
-- Public names: `click...` for clicks, `enter...(String)` for typing, `get...` for visible text, `is...Displayed` for a check, and `load` to wait until a landmark is visible.
-- Return `void` for a click, `String` for text, `boolean` for a display check, or the next page when the action navigates. `executeLogin` returns `new SuccessfulLoginPage(driver)`.
-- Pass typed text in from the test. Do not store usernames, passwords, or expected messages on the page.
-- Do not call `Assert`. The test owns every assertion.
+- `visit()` calls `super.visit` with this page's address. Omit `visit()` when another page opens this one, as `SuccessfulLoginPage` does.
+- Names: `click...`, `enter...(String)`, `get...` for text, `is...Displayed` for a check, `load` to wait for a landmark.
+- Return `void`, `String`, `boolean`, or the next page (`new SuccessfulLoginPage(driver)`).
+- A typing method takes the text as an argument. Do not store credentials or expected messages.
+- Do not assert. The locator a method uses is the element its name describes.
 
 ## Waits
 
-Call the `BasePage` helpers. Do not add another `WebDriverWait` or import `ExpectedConditions` in a page class.
+Use the `BasePage` helpers. Add a new shared wait there instead of copying one.
 
-- The element is already on the page: `driver.findElement(locator)` for `sendKeys`, `clear`, and `click` (`enterUsername`, `clickAddButton`).
-- The field may already contain text: `clear()` then `sendKeys`, as `enterTextInRowOne` does. A field that starts empty uses `sendKeys` only.
-- Text appears after an action: `waitForElement(locator).getText()` (`getErrorMessage`, `getSuccessMessage`).
-- A click must wait until the control is enabled: `waitForElementToBeClickable(locator).click()` (`clickEditButton`).
-- The next page is ready: `waitForElement(locator)` inside `load()`.
-- Boolean "visible now": `isDisplayed(locator)`. It returns false on `NoSuchElementException`.
-- Boolean "becomes visible within 10 seconds": `waitForIsDisplayed(locator)`. It returns false on timeout. Name the method `is...DisplayedAfterWait`.
-- Boolean "goes away within 10 seconds": `waitForInvisibilityOfElement(locator)`. It returns false on timeout. The locator must be the element named by the method.
-
-Put a new shared wait on `BasePage`. A page class calls that method instead of copying it.
+- Already present: `driver.findElement(locator)` to type or click.
+- Field may already hold text: `clear()`, then `sendKeys`. Otherwise `sendKeys` only.
+- Text that appears later: `waitForElement(locator).getText()`.
+- Click once enabled: `waitForElementToBeClickable(locator).click()`.
+- Landmark for `load()`: `waitForElement(locator)`.
+- Visible now: `isDisplayed(locator)`.
+- Becomes visible: `waitForIsDisplayed(locator)`, named `is...DisplayedAfterWait`.
+- Goes away: `waitForInvisibilityOfElement` on the element named by the method.
