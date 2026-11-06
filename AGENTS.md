@@ -71,7 +71,7 @@ Page-scoped tools require `pageId`. Open a URL with `new_page` (argument `url`) 
 
 ## Cloud Agent environment
 
-Sessions are headed. Chrome and Firefox are installed, and Xvfb listens on display `:99` at boot. `/etc/profile.d/selenium-display.sh` and `/etc/mavenrc` set `DISPLAY=:99` when `DISPLAY` is unset, so `mvn test` from a non-interactive shell uses that display. The DevTools server is not launched by Maven, so it only sees `DISPLAY` when the process that starts `npx` has it set.
+Sessions are headed. Chrome and Firefox are installed. Xvfb listens on display `:99` at boot. `/usr/local/bin/mvn` checks that `DISPLAY` is a live X server and, when it is missing or dead, starts Xvfb on `:99` before calling `/usr/bin/mvn`. `/etc/profile.d/selenium-display.sh` and `/etc/mavenrc` set `DISPLAY=:99` when it is unset. The DevTools server is not launched by Maven, so it only sees `DISPLAY` when the process that starts `npx` has a live display.
 
 Ubuntu's `firefox` package is a snap stub. This environment installs Mozilla's deb and pins it ahead of Ubuntu. Edge is not installed. The full-regression value `safari` still falls back to Chrome.
 
