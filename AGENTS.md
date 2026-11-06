@@ -31,15 +31,18 @@ src/main/java/com/practicetestautomation/pageobjects/
   LoginPage.java
   SuccessfulLoginPage.java
   ExceptionsPage.java
+  TablePage.java
 src/test/java/com/practicetestautomation/tests/
   BaseTest.java
   login/LoginTests.java
   exceptions/ExceptionsTests.java
+  table/TableTests.java
 src/test/resources/TestSuites/
   FullRegressionSuite.xml    # default Surefire suite
   SmokeTestSuite.xml
   ExceptionsSuite.xml
   DebugSuite.xml
+  TableSuite.xml
 ```
 
 There is no `src/main/resources` directory. Maven output is `target/` (gitignored). IntelliJ output is `out/` (not gitignored). `.idea/misc.xml` and `.idea/encodings.xml` are committed.
@@ -53,16 +56,18 @@ mvn test
 mvn test -DsuiteXmlFile=SmokeTestSuite.xml
 mvn test -DsuiteXmlFile=ExceptionsSuite.xml
 mvn test -DsuiteXmlFile=DebugSuite.xml
+mvn test -DsuiteXmlFile=TableSuite.xml
 ```
 
 Surefire runs one suite file: `src/test/resources/TestSuites/${suiteXmlFile}`. The property defaults to `FullRegressionSuite.xml`. Pass the file name only. There is no `testng.xml` at the default TestNG location.
 
 | Suite | What it runs |
 | --- | --- |
-| `FullRegressionSuite.xml` | Positive login on `chrome` and `firefox`. Invalid username on `firefox`. Invalid password with browser value `safari`. All of `ExceptionsTests` on `chrome`. |
+| `FullRegressionSuite.xml` | Positive login on `chrome` and `firefox`. Invalid username on `firefox`. Invalid password with browser value `safari`. All of `ExceptionsTests` on `chrome`. All of `TableTests` on `chrome`. |
 | `SmokeTestSuite.xml` | `LoginTests` methods in the `smoke` group. No `browser` parameter, so Chrome. |
 | `ExceptionsSuite.xml` | All of `ExceptionsTests` on `chrome`. |
 | `DebugSuite.xml` | Each exceptions test method in its own `<test>`. No `browser` parameter, so Chrome. |
+| `TableSuite.xml` | All of `TableTests` on `chrome`. |
 
 ## Inspect pages
 
@@ -86,7 +91,7 @@ Page-scoped tools require `pageId`. Open a URL with `new_page` (argument `url`) 
 - Suites select methods and supply parameters. Follow the existing `<parameter>` pattern for `browser` and for negative-login data.
 - `BaseTest.setup` reads TestNG parameter `browser` (`@Optional("chrome")`). Values `chrome`, `edge`, and `firefox` are supported, case-insensitively. Any other value logs a warning and starts Chrome. The full-regression invalid-password test passes `safari`, which takes that fallback. No suite currently passes `edge`.
 - `@BeforeMethod` and `@AfterMethod` are `alwaysRun = true`. Teardown calls `driver.quit()`.
-- Logging is `java.util.logging` at `INFO`. `BaseTest` always builds the logger with `LoginTests.class.getName()`, including for exceptions tests.
+- Logging is `java.util.logging` at `INFO`. `BaseTest` always builds the logger with `LoginTests.class.getName()`, including for exceptions and table tests.
 - `loginFunctionalityTest` groups: `positive`, `regression`, `smoke`. `negativeLoginTest` groups: `negative`, `regression`. It requires suite parameters `username`, `password`, and `expectedErrorMessage`. Including that method without those parameters fails. No suite filters on the `regression` group; full regression includes methods by name.
 - Positive login uses the practice site's published student credentials, hardcoded in `LoginTests`. Negative username and password cases and their expected `#error` text are the parameters in `FullRegressionSuite.xml`.
 - Login page: `https://practicetestautomation.com/practice-test-login/`. Success URL: `https://practicetestautomation.com/logged-in-successfully/`. Logout is the link text `Log out`.
@@ -96,3 +101,4 @@ Page-scoped tools require `pageId`. Open a URL with `new_page` (argument `url`) 
 - `invalidElementStateExceptionTest` clicks Edit, enters `sampleText` in row 1, clicks Save, and expects `Row 1 was saved`.
 - `staleElementReferenceExceptionTest` asserts `#instructions` is displayed, clicks Add, then calls `isInstructionsNoLongerDisplayedAfterWait()`. That method waits for invisibility of `//button[@id='edit_btn']`. The instructions locator is `#instructions`.
 - `ExceptionsTests` still contains large commented blocks of the earlier raw-Selenium steps. The uncommented statements are the tests that run.
+- Table page: `https://practicetestautomation.com/practice-test-table/`. `TableTests` covers the eight cases published on that page. The page sorts by ID on load, so filtered rows are asserted in that order unless the test changes Sort by. `languageFilterJavaTest` selects Java and expects the six Java courses. `levelFilterBeginnerOnlyTest` unchecks Intermediate and Advanced and expects the five Beginner courses. `minEnrollmentsFilterTest` chooses the `data-value="10000"` option and expects every visible enrollment to be at least 10,000. `combinedFiltersTest` applies Python, Beginner, and 10,000+ and expects only Selenium with Python. `noResultsStateTest` selects Python with only Advanced checked, expects the text `No matching courses.`, then selects Any and expects the two Advanced courses. `resetButtonTest` expects Reset to be hidden, to appear after selecting Java, and after the click to restore Language Any, all three levels, Min enrollments Any, a hidden Reset button, and all nine courses. `sortByEnrollmentsTest` expects numeric ascending enrollments `1365, 2207, 2667, 6678, 8254, 10705, 14762, 16452, 64284`. `sortByCourseNameTest` expects A-to-Z course names, then the same order for the Java subset after selecting Java. Enrollment text is parsed by keeping digits, so a comma in the cell does not change the numeric assertion.
