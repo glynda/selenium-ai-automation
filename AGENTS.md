@@ -71,6 +71,16 @@ Requirements beyond the Maven test run: Node.js LTS, npm, current stable Chrome,
 
 Page-scoped tools require `pageId`. Open a URL with `new_page` (argument `url`) or `navigate_page`, then read ids from `list_pages`. A fresh browser already has an `about:blank` tab, so the page from `new_page` is not id 1. Inspect with `take_snapshot` (accessibility tree; prefer this over a screenshot), `take_screenshot`, `list_console_messages`, and `list_network_requests`.
 
+## Cloud Agent environment
+
+Sessions are headed. Chrome and Firefox are installed. Xvfb listens on display `:99` at boot. `/usr/local/bin/mvn` checks that `DISPLAY` is a live X server and, when it is missing or dead, starts Xvfb on `:99` before calling `/usr/bin/mvn`. `/etc/profile.d/selenium-display.sh` and `/etc/mavenrc` set `DISPLAY=:99` when it is unset. The DevTools server is not launched by Maven, so it only sees `DISPLAY` when the process that starts `npx` has a live display.
+
+Ubuntu's `firefox` package is a snap stub. This environment installs Mozilla's deb and pins it ahead of Ubuntu. Edge is not installed. The full-regression value `safari` still falls back to Chrome.
+
+Node.js 26 LTS is on the default PATH as `/usr/local/bin/node`, `/usr/local/bin/npm`, and `/usr/local/bin/npx` for `.cursor/mcp.json`.
+
+Selenium Manager downloads the matching driver on first use into `~/.cache/selenium`. That needs HTTPS to Maven Central, `practicetestautomation.com`, and the driver hosts. A Chrome DevTools version warning for the installed Chrome build does not fail these tests.
+
 ## Conventions
 
 - When adding a test or suite entry, follow `.cursor/rules/new-tests.mdc`. When adding a page object, follow `.cursor/rules/page-objects.mdc`.
