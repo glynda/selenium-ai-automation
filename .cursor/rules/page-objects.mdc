@@ -6,30 +6,38 @@ alwaysApply: false
 
 # Page objects
 
-Follow `@src/main/java/com/practicetestautomation/pageobjects/LoginPage.java`, `@src/main/java/com/practicetestautomation/pageobjects/SuccessfulLoginPage.java`, and `@src/main/java/com/practicetestautomation/pageobjects/BasePage.java`. For elements that appear after a click, follow `@src/main/java/com/practicetestautomation/pageobjects/ExceptionsPage.java`.
+Follow `@src/main/java/com/practicetestautomation/pageobjects/LoginPage.java`, `@src/main/java/com/practicetestautomation/pageobjects/SuccessfulLoginPage.java`, and `@src/main/java/com/practicetestautomation/pageobjects/BasePage.java`. For elements that appear after a click, follow `@src/main/java/com/practicetestautomation/pageobjects/ExceptionsPage.java`. For a filter, sort, menu, or table, follow `@src/main/java/com/practicetestautomation/pageobjects/TablePage.java`.
 
 - Package `com.practicetestautomation.pageobjects`. `public class <Name>Page extends BasePage`.
 - Constructor only calls `super(driver)`. Use `driver` and `wait` from `BasePage`. Do not construct a `WebDriver` or `WebDriverWait`.
 - Import `By`, `WebDriver`, and `WebElement` only when used. No `PageFactory` or `@FindBy`.
-- `private By` fields before the constructor, suffix `Locator`. Prefer `By.id`. Use `By.linkText` for a link. Scope an xpath to one row when an id repeats. Do not build a `By` inside a method.
+- Locator fields are `private static final By`, suffix `Locator`, and they sit before the constructor. Prefer `By.id`. Use `By.linkText` for a link. Scope an xpath to one group when an id repeats, as `TablePage` scopes a radio to its fieldset legend.
+- Do not build a `By` inside a method. Do not concatenate a parameter into a CSS or XPath string.
+- A fixed set of choices is a public enum on the page. Each constant holds one complete `By` literal. Public methods take that enum. They do not take a markup value (`data-value`, option `value`, column name) as a `String`.
+- A public method does not return `By` or `WebElement`. Return a collection with `List.copyOf`.
 
 ## Actions
 
 - `visit()` calls `super.visit` with this page's address. Omit `visit()` when another page opens this one, as `SuccessfulLoginPage` does.
-- Names: `click...`, `enter...(String)`, `get...` for text, `is...Displayed` for a check, `load` to wait for a landmark.
-- Return `void`, `String`, `boolean`, or the next page (`new SuccessfulLoginPage(driver)`).
+- Names: `click...`, `enter...(String)`, `select...(Enum)`, `get...` for text, `is...Displayed` for a check, `load` to wait for a landmark.
+- Return `void`, `String`, `boolean`, a value type, or the next page (`new SuccessfulLoginPage(driver)`).
 - A typing method takes the text as an argument. Do not store credentials or expected messages.
 - Do not assert. The locator a method uses is the element its name describes.
+- Skip the click when a radio, checkbox, or `<select>` is already in the requested state. Click a toggling control, such as a menu button with `aria-expanded`, only when it is closed.
+- A native `<select>` uses `org.openqa.selenium.support.ui.Select` and `selectByValue`. A custom menu is not a `Select`.
+- Read an input's current value with `getDomProperty`. Read `data-*` and `aria-*` with `getDomAttribute`. Do not call `getAttribute`.
+- A number parsed from visible text: remove commas and spaces only, then `Integer.parseInt` the whole remainder. The exception includes the original text. Do not delete every non-digit.
 
 ## Waits
 
-Use the `BasePage` helpers. Add a new shared wait there instead of copying one.
+Use the `BasePage` helpers. Add a new shared wait there instead of copying one. After an action, wait for the resulting state on the `wait` field (`elementToBeSelected`, `elementSelectionStateToBe`, `attributeToBe`, `textToBe`). Do not construct another `WebDriverWait`.
 
-- Already present: `driver.findElement(locator)` to type or click.
+- Element is already on the page, and this method does not follow an action that changes it: `driver.findElement(locator)`.
 - Field may already hold text: `clear()`, then `sendKeys`. Otherwise `sendKeys` only.
 - Text that appears later: `waitForElement(locator).getText()`.
 - Click once enabled: `waitForElementToBeClickable(locator).click()`.
-- Landmark for `load()`: `waitForElement(locator)`.
-- Visible now: `isDisplayed(locator)`.
+- Landmark for `load()` or `visit()`: `waitForElement(locator)`.
+- Visible now, unchanged by this method: `isDisplayed(locator)`.
 - Becomes visible: `waitForIsDisplayed(locator)`, named `is...DisplayedAfterWait`.
-- Goes away: `waitForInvisibilityOfElement` on the element named by the method.
+- Goes away: `waitForInvisibilityOfElement`, named `is...NoLongerDisplayedAfterWait`.
+- Read a message's text only after `waitForElement`. Check that it is gone with `waitForInvisibilityOfElement`. Do not pair `isDisplayed` with `waitForElement` for the same message.
