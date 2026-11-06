@@ -1,0 +1,35 @@
+---
+description: Use when creating or editing Selenium page objects in the pageobjects package.
+globs: src/main/java/com/practicetestautomation/pageobjects/**/*.java
+alwaysApply: false
+---
+
+# Page objects
+
+Follow `@src/main/java/com/practicetestautomation/pageobjects/LoginPage.java`, `@src/main/java/com/practicetestautomation/pageobjects/SuccessfulLoginPage.java`, and `@src/main/java/com/practicetestautomation/pageobjects/BasePage.java`. For elements that appear after a click, follow `@src/main/java/com/practicetestautomation/pageobjects/ExceptionsPage.java`.
+
+- Package `com.practicetestautomation.pageobjects`. `public class <Name>Page extends BasePage`.
+- Constructor only calls `super(driver)`. Use `driver` and `wait` from `BasePage`. Do not construct a `WebDriver` or `WebDriverWait`.
+- Import `By`, `WebDriver`, and `WebElement` only when used. No `PageFactory` or `@FindBy`.
+- `private By` fields before the constructor, suffix `Locator`. Prefer `By.id`. Use `By.linkText` for a link. Scope an xpath to one row when an id repeats. Do not build a `By` inside a method.
+
+## Actions
+
+- `visit()` calls `super.visit` with this page's address. Omit `visit()` when another page opens this one, as `SuccessfulLoginPage` does.
+- Names: `click...`, `enter...(String)`, `get...` for text, `is...Displayed` for a check, `load` to wait for a landmark.
+- Return `void`, `String`, `boolean`, or the next page (`new SuccessfulLoginPage(driver)`).
+- A typing method takes the text as an argument. Do not store credentials or expected messages.
+- Do not assert. The locator a method uses is the element its name describes.
+
+## Waits
+
+Use the `BasePage` helpers. Add a new shared wait there instead of copying one.
+
+- Already present: `driver.findElement(locator)` to type or click.
+- Field may already hold text: `clear()`, then `sendKeys`. Otherwise `sendKeys` only.
+- Text that appears later: `waitForElement(locator).getText()`.
+- Click once enabled: `waitForElementToBeClickable(locator).click()`.
+- Landmark for `load()`: `waitForElement(locator)`.
+- Visible now: `isDisplayed(locator)`.
+- Becomes visible: `waitForIsDisplayed(locator)`, named `is...DisplayedAfterWait`.
+- Goes away: `waitForInvisibilityOfElement` on the element named by the method.

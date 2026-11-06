@@ -22,6 +22,8 @@ Maven coordinates: `org.example:SeleniumForBeginners:1.0-SNAPSHOT`. The GitHub r
 
 ```
 .cursor/mcp.json          # Chrome DevTools MCP server for Cursor
+.cursor/rules/new-tests.mdc
+.cursor/rules/page-objects.mdc
 pom.xml
 src/main/java/com/practicetestautomation/pageobjects/
   BasePage.java
@@ -71,6 +73,7 @@ Page-scoped tools require `pageId`. Open a URL with `new_page` (argument `url`) 
 
 ## Conventions
 
+- When adding a test or suite entry, follow `.cursor/rules/new-tests.mdc`. When adding a page object, follow `.cursor/rules/page-objects.mdc`.
 - Put UI actions and locators on a page object under `com.practicetestautomation.pageobjects`, extending `BasePage`. Tests live under `com.practicetestautomation.tests`, extend `BaseTest`, and call page objects.
 - Keep locators as private `By` fields. Reuse the `BasePage` helpers below instead of constructing another `WebDriverWait`. The shared wait is 10 seconds.
   - `waitForElement` waits until visible.
