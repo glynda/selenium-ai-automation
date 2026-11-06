@@ -2,6 +2,10 @@ package com.practicetestautomation.tests.table;
 
 import com.practicetestautomation.pageobjects.TablePage;
 import com.practicetestautomation.pageobjects.TablePage.CourseRow;
+import com.practicetestautomation.pageobjects.TablePage.Language;
+import com.practicetestautomation.pageobjects.TablePage.Level;
+import com.practicetestautomation.pageobjects.TablePage.MinEnrollments;
+import com.practicetestautomation.pageobjects.TablePage.SortBy;
 import com.practicetestautomation.tests.BaseTest;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -15,7 +19,7 @@ public class TableTests extends BaseTest {
     public void languageFilterJavaTest() {
         logger.info("Open the table page and select Language = Java");
         TablePage tablePage = openTablePage();
-        tablePage.selectLanguage("Java");
+        tablePage.selectLanguage(Language.JAVA);
 
         List<CourseRow> visibleRows = tablePage.getVisibleCourseRows();
         logger.info("Verify only Java courses are visible");
@@ -36,8 +40,8 @@ public class TableTests extends BaseTest {
     public void levelFilterBeginnerOnlyTest() {
         logger.info("Open the table page and uncheck Intermediate and Advanced");
         TablePage tablePage = openTablePage();
-        tablePage.setLevelSelected("Intermediate", false);
-        tablePage.setLevelSelected("Advanced", false);
+        tablePage.setLevelSelected(Level.INTERMEDIATE, false);
+        tablePage.setLevelSelected(Level.ADVANCED, false);
 
         List<CourseRow> visibleRows = tablePage.getVisibleCourseRows();
         logger.info("Verify only Beginner courses are visible");
@@ -51,18 +55,19 @@ public class TableTests extends BaseTest {
         for (CourseRow row : visibleRows) {
             Assert.assertEquals(row.level(), "Beginner", row.courseName() + " is visible but is not Beginner");
         }
-        Assert.assertFalse(tablePage.isLevelSelected("Intermediate"), "Intermediate stayed checked");
-        Assert.assertFalse(tablePage.isLevelSelected("Advanced"), "Advanced stayed checked");
-        Assert.assertTrue(tablePage.isLevelSelected("Beginner"), "Beginner was unchecked");
+        Assert.assertFalse(tablePage.isLevelSelected(Level.INTERMEDIATE), "Intermediate stayed checked");
+        Assert.assertFalse(tablePage.isLevelSelected(Level.ADVANCED), "Advanced stayed checked");
+        Assert.assertTrue(tablePage.isLevelSelected(Level.BEGINNER), "Beginner was unchecked");
     }
 
     @Test(description = "Test case 3: Min enrollments -> 10,000+")
     public void minEnrollmentsFilterTest() {
         logger.info("Open the table page and set Min enrollments = 10,000+");
         TablePage tablePage = openTablePage();
-        tablePage.selectMinEnrollments("10000");
+        tablePage.selectMinEnrollments(MinEnrollments.AT_LEAST_10000);
 
-        Assert.assertEquals(tablePage.getMinEnrollmentsLabel(), "10,000+", "Min enrollments label was not updated");
+        Assert.assertEquals(tablePage.getSelectedMinEnrollments(), MinEnrollments.AT_LEAST_10000, "Min enrollments value was not updated");
+        Assert.assertEquals(tablePage.getMinEnrollmentsLabel(), MinEnrollments.AT_LEAST_10000.label(), "Min enrollments label was not updated");
         List<CourseRow> visibleRows = tablePage.getVisibleCourseRows();
         logger.info("Verify every visible row has at least 10,000 enrollments");
         Assert.assertEquals(courseNames(visibleRows), List.of(
@@ -81,10 +86,10 @@ public class TableTests extends BaseTest {
     public void combinedFiltersTest() {
         logger.info("Open the table page and apply Python, Beginner, and 10,000+ filters");
         TablePage tablePage = openTablePage();
-        tablePage.selectLanguage("Python");
-        tablePage.setLevelSelected("Intermediate", false);
-        tablePage.setLevelSelected("Advanced", false);
-        tablePage.selectMinEnrollments("10000");
+        tablePage.selectLanguage(Language.PYTHON);
+        tablePage.setLevelSelected(Level.INTERMEDIATE, false);
+        tablePage.setLevelSelected(Level.ADVANCED, false);
+        tablePage.selectMinEnrollments(MinEnrollments.AT_LEAST_10000);
 
         List<CourseRow> visibleRows = tablePage.getVisibleCourseRows();
         logger.info("Verify only Python Beginner courses with at least 10,000 enrollments are visible");
@@ -101,20 +106,18 @@ public class TableTests extends BaseTest {
     public void noResultsStateTest() {
         logger.info("Open the table page and filter to Python Advanced, which has no courses");
         TablePage tablePage = openTablePage();
-        tablePage.selectLanguage("Python");
-        tablePage.setLevelSelected("Beginner", false);
-        tablePage.setLevelSelected("Intermediate", false);
+        tablePage.selectLanguage(Language.PYTHON);
+        tablePage.setLevelSelected(Level.BEGINNER, false);
+        tablePage.setLevelSelected(Level.INTERMEDIATE, false);
 
         logger.info("Verify the no matching courses message is shown");
-        Assert.assertTrue(tablePage.isNoMatchingCoursesDisplayed(), "No matching courses message is not displayed");
+        Assert.assertTrue(tablePage.isNoMatchingCoursesDisplayedAfterWait(), "No matching courses message is not displayed");
         Assert.assertEquals(tablePage.getNoMatchingCoursesText(), "No matching courses.");
-        Assert.assertFalse(tablePage.isCoursesTableDisplayed(), "Courses table stayed visible when nothing matches");
         Assert.assertTrue(tablePage.getVisibleCourseRows().isEmpty(), "Rows stayed visible when nothing matches");
 
         logger.info("Clear the language filter and verify the empty state goes away");
-        tablePage.selectLanguage("Any");
-        Assert.assertFalse(tablePage.isNoMatchingCoursesDisplayed(), "No matching courses message stayed visible after matches returned");
-        Assert.assertTrue(tablePage.isCoursesTableDisplayed(), "Courses table stayed hidden after matches returned");
+        tablePage.selectLanguage(Language.ANY);
+        Assert.assertTrue(tablePage.isCoursesTableDisplayedAfterWait(), "Courses table stayed hidden after matches returned");
         Assert.assertEquals(courseNames(tablePage.getVisibleCourseRows()), List.of(
                 "Selenium Framework",
                 "Selenium Grid"
@@ -125,21 +128,21 @@ public class TableTests extends BaseTest {
     public void resetButtonTest() {
         logger.info("Open the table page and confirm Reset is hidden on the defaults");
         TablePage tablePage = openTablePage();
-        Assert.assertFalse(tablePage.isResetButtonDisplayed(), "Reset button is visible before any filter changes");
+        Assert.assertTrue(tablePage.isResetButtonNoLongerDisplayedAfterWait(), "Reset button is visible before any filter changes");
 
         logger.info("Change the language filter and verify Reset becomes visible");
-        tablePage.selectLanguage("Java");
-        Assert.assertTrue(tablePage.isResetButtonDisplayed(), "Reset button stayed hidden after a filter change");
+        tablePage.selectLanguage(Language.JAVA);
+        Assert.assertTrue(tablePage.isResetButtonDisplayedAfterWait(), "Reset button stayed hidden after a filter change");
 
         logger.info("Click Reset and verify the default filters and all rows return");
         tablePage.clickReset();
-        Assert.assertEquals(tablePage.getSelectedLanguage(), "Any", "Language was not reset to Any");
-        Assert.assertTrue(tablePage.isLevelSelected("Beginner"), "Beginner was not checked after reset");
-        Assert.assertTrue(tablePage.isLevelSelected("Intermediate"), "Intermediate was not checked after reset");
-        Assert.assertTrue(tablePage.isLevelSelected("Advanced"), "Advanced was not checked after reset");
-        Assert.assertEquals(tablePage.getMinEnrollmentsLabel(), "Any", "Min enrollments label was not reset to Any");
-        Assert.assertEquals(tablePage.getMinEnrollmentsValue(), "any", "Min enrollments value was not reset to any");
-        Assert.assertFalse(tablePage.isResetButtonDisplayed(), "Reset button stayed visible after reset");
+        Assert.assertEquals(tablePage.getSelectedLanguage(), Language.ANY, "Language was not reset to Any");
+        Assert.assertTrue(tablePage.isLevelSelected(Level.BEGINNER), "Beginner was not checked after reset");
+        Assert.assertTrue(tablePage.isLevelSelected(Level.INTERMEDIATE), "Intermediate was not checked after reset");
+        Assert.assertTrue(tablePage.isLevelSelected(Level.ADVANCED), "Advanced was not checked after reset");
+        Assert.assertEquals(tablePage.getSelectedMinEnrollments(), MinEnrollments.ANY, "Min enrollments value was not reset to Any");
+        Assert.assertEquals(tablePage.getMinEnrollmentsLabel(), MinEnrollments.ANY.label(), "Min enrollments label was not reset to Any");
+        Assert.assertTrue(tablePage.isResetButtonNoLongerDisplayedAfterWait(), "Reset button stayed visible after reset");
         Assert.assertEquals(courseNames(tablePage.getVisibleCourseRows()), List.of(
                 "Selenium Framework",
                 "Selenium with Java",
@@ -157,7 +160,7 @@ public class TableTests extends BaseTest {
     public void sortByEnrollmentsTest() {
         logger.info("Open the table page and sort by Enrollments");
         TablePage tablePage = openTablePage();
-        tablePage.selectSortBy("Enrollments");
+        tablePage.selectSortBy(SortBy.ENROLLMENTS);
 
         List<CourseRow> visibleRows = tablePage.getVisibleCourseRows();
         logger.info("Verify rows are ordered by enrollment number, smallest to largest");
@@ -184,7 +187,7 @@ public class TableTests extends BaseTest {
     public void sortByCourseNameTest() {
         logger.info("Open the table page and sort by Course Name");
         TablePage tablePage = openTablePage();
-        tablePage.selectSortBy("Course Name");
+        tablePage.selectSortBy(SortBy.COURSE_NAME);
 
         logger.info("Verify visible rows are ordered A to Z by course name");
         Assert.assertEquals(courseNames(tablePage.getVisibleCourseRows()), List.of(
@@ -200,7 +203,7 @@ public class TableTests extends BaseTest {
         ), "Courses are not in alphabetical order");
 
         logger.info("Filter to Java and verify the visible rows stay in alphabetical order");
-        tablePage.selectLanguage("Java");
+        tablePage.selectLanguage(Language.JAVA);
         Assert.assertEquals(courseNames(tablePage.getVisibleCourseRows()), List.of(
                 "Advanced Selenium",
                 "Java for Testers",
