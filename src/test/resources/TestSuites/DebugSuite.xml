@@ -1,0 +1,52 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<suite name="Debug Suite" verbose="1">
+    <test name="NoSuchElementException Test">
+        <classes>
+            <class name="com.practicetestautomation.tests.exceptions.ExceptionsTests">
+                <methods>
+                    <include name="noSuchElementExceptionsTest"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test name="TimeOutException Test">
+        <classes>
+            <class name="com.practicetestautomation.tests.exceptions.ExceptionsTests">
+                <methods>
+                    <include name="timeOutExceptionTest"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test name="ElementNotInteractableException Test">
+        <classes>
+            <class name="com.practicetestautomation.tests.exceptions.ExceptionsTests">
+                <methods>
+                    <include name="elementNotInteractableExceptionTest"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+    <test name="InvalidElementStateException Test">
+        <classes>
+            <class name="com.practicetestautomation.tests.exceptions.ExceptionsTests">
+                <methods>
+                    <include name="invalidElementStateExceptionTest"/>
+                </methods>
+
+            </class>
+        </classes>
+    </test>
+    <test name="StaleElementReferenceException Test">
+        <classes>
+            <class name="com.practicetestautomation.tests.exceptions.ExceptionsTests">
+                <methods>
+                    <include name="staleElementReferenceExceptionTest"/>
+                </methods>
+
+            </class>
+        </classes>
+    </test>
+
+</suite>
